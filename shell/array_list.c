@@ -39,7 +39,7 @@ void delete(Arraylist* arraylist, int delete_position){
 	arraylist->size--;
 }
 
-void* getIthElement(Arraylist*arraylist,int ith_element){
+void* getIthElement(Arraylist*arraylist,int ith_element){ 
 	return arraylist->data+(ith_element-1)*arraylist->element_size;
 }
 
