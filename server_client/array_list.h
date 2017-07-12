@@ -13,6 +13,7 @@ void init_arraylist(Arraylist* arraylist, int element_size);
 void append(Arraylist* arraylist, void* element);
 void insert(Arraylist*arraylist, void* element, int positon);
 void delete(Arraylist* arraylist, int delete_position);
+void freeArrayList(Arraylist* arraylist);
 void* getIthElement(Arraylist*arraylist,int ith_element);
 void printCharPointArraylist(Arraylist* arraylist);
 void printCharArraylist(Arraylist* arraylist);
