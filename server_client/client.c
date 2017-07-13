@@ -4,18 +4,34 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include<string.h>
-
+#include <stdlib.h>
+#include <errno.h>
+#include <limits.h>
+#include "client.h"
+#include "init_client.h"
+      
 
 
 int main(int argc, char**argv){
+	char name[100],serverIP[100],serverPort[100];
+   if (init_client(argc,argv,name,serverIP,serverPort)==0){
+   		exit(EXIT_FAILURE);
+   }
+	long int converted_portNumber;
+	if ( (converted_portNumber=convert_portNumber(serverPort))==-1){exit(EXIT_FAILURE);}
+	printf("the port number is %ld\n",converted_portNumber);
 	int client_socket;
 	client_socket=socket(AF_INET,SOCK_STREAM,0);
-	if (client_socket==-1){perror("failed to create the client socket");return 1;}
-	
+	if (client_socket==-1){perror("failed to create the client socket");exit(EXIT_FAILURE);}
 	struct sockaddr_in server_address;
 	server_address.sin_family=AF_INET;
-	server_address.sin_port=htons(12000);
-	server_address.sin_addr.s_addr=inet_addr("127.0.0.1");// different way of ip_address
+	server_address.sin_port=htons((uint16_t) converted_portNumber);
+	//server_address.sin_port=htons(12000);
+	//server_address.sin_addr.s_addr=inet_addr("127.0.0.1");// different way of ip_address
+    if(inet_aton(serverIP, (struct in_addr *)&(server_address.sin_addr.s_addr))==0){
+		perror("not a valid ip address\n");
+		exit(EXIT_FAILURE);
+	}	
 	int connectReturn;
 	if( (connectReturn=connect(client_socket,(struct sockaddr*) &server_address,sizeof(struct sockaddr)))==-1){
 		perror("failed to connect to the server\n");
@@ -24,20 +40,63 @@ int main(int argc, char**argv){
 	while(1){
 		char client_message[1000]="0";
 		printf("Enter the message: ");
-		//scanf("%s",client_message);
 		fgets(client_message,1000,stdin);
 		int size_client_message=(int)strlen(client_message);
 		client_message[size_client_message-1]='\0';
 		char* endNode="\r\n\r\n";
 		strcat(client_message, endNode);
-		int sendSize=send(client_socket,client_message,1000,0);
-		
-		printf("my send size is %d\n",sendSize);
+		int sendSize=send(client_socket,client_message,strlen(client_message),0);
 		if(sendSize==-1) perror("failed to send message\n");
 		int recvSize=recv(client_socket,client_message,1000,0);
 		if (recvSize==-1) perror("failed to receive message\n");
 		printf("the message I received is %s\n",client_message);
+		//client_login(client_socket,char*name);
 	}
 	close(client_socket);
 	return 0;
+}
+
+int client_login(int client_socket,char*name){
+	//-1 disconnect -10 abnormal message from server 1 good 
+	char client_message[1000]="";
+	char * wolfie="WOLFIE";
+	char * endNode="\r\n\r\n";	
+	strcpy(client_message,wolfie);
+	strcat(client_message,endNode);
+	int sendSize;
+	if((sendSize=send(client_socket,client_message,strlen(client_message),0))==-1  )
+	{perror("failed to send message\n");return -1;}
+	int recvSize;
+	if((recvSize=recv(client_socket,client_message,1000,0)) ==-1){perror("failed to receive message");return -1;} // 
+	printf("the message I received is %s\n",client_message);
+	char compare_receive[1000]="ELFLOW";
+	strcat(compare_receive,endNode);
+	if(strcmp(client_message,compare_receive)!=0){perror("not the message I expected\n");return -10;}
+	
+	
+	
+	
+	
+	return 1;
+}
+
+long int convert_portNumber(char* serverPort){
+	char mid;
+	char* endptr=&mid;
+	errno =0;
+	long int returnValue=strtol(serverPort, &endptr, 10);
+	//underflow and overflow or no digits 
+	if( (errno==ERANGE && (returnValue==LLONG_MAX || returnValue==LLONG_MIN)) || (errno==EINVAL && returnValue==0) ){
+		printf("overflow/underflow happened or No digits was seen, no conversion is performed\n");
+		return -1;
+	}
+	if(endptr==serverPort){
+		printf("no digits was seen in the port number\n");
+		return -1;
+	}
+	if (*endptr != '\0'){        /* Not necessarily an error... */
+       printf("Further characters after number: %s\n", endptr);
+		return -1;
+	}
+	return returnValue;
 }

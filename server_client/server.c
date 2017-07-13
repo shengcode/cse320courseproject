@@ -76,27 +76,6 @@ void * thread_accept(void* vargp){
 
 }
 
-void * thread_login(void* vargp){
-	int communicateSocket=*((int*) vargp);
-	printf("HELO\n");
-	
-	while(1){
-		Arraylist readSentence;
-		init_arraylist(&readSentence, sizeof(char));
-		if (readCharacter(communicateSocket,&readSentence)==0){
-			printf("failed to receive message\n");
-			break;
-		}
-		char sendMessage[1000]="0";
-		char null_ter='\0';
-		append(&readSentence, &null_ter);
-		char* des=strcpy(sendMessage,(char*)readSentence.data);
-		printf("the des string is %s\n",des);
-		printf("the message is %s\n",sendMessage);
-		send(communicateSocket,sendMessage,1000,0);
-		freeArrayList(&readSentence);
-	}
-}
 
 
 
