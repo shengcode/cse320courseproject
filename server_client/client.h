@@ -3,7 +3,7 @@
 
 
 
-int client_login(int client_socket,char*name);
+int client_login(int client_socket,char*name,int cflags);
 long int convert_portNumber(char* serverPort);
 
 #endif

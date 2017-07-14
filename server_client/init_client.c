@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include<string.h>
 #include "init_client.h"
-int  init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPort){
+int  init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPort, int * cflags){
 	int hflags=0,cflags=0,vflags=0,opt;
 	while ((opt = getopt(argc, argv, "hcv")) != -1) {
 		switch (opt) {
@@ -26,6 +26,7 @@ int  init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPo
 		printf("h is shown display help\n");
 	}
 	if(cflags==1){
+		*cflags=1;
 		printf("c is show\n");
 	}
 	if(vflags==1){
