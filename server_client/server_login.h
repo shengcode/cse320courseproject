@@ -3,6 +3,6 @@
 
 #include "array_list.h"
 void * thread_login(void* vargp);
-int readCharacter(int fd, Arraylist* readCharacter);
+int readCharacter(int fd, char*serveBuf);
 
 #endif

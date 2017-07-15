@@ -2,16 +2,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include<string.h>
+#include "utility.h"
+#include "array_list.h"
+#include "client.h"
 #include "init_client.h"
+#include "client_login.h"
+
 int  init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPort, int * cflags){
-	int hflags=0,cflags=0,vflags=0,opt;
+	int hflags=0,vflags=0,opt;
 	while ((opt = getopt(argc, argv, "hcv")) != -1) {
 		switch (opt) {
 			case 'h':
 					hflags=1;
 					break;
 			case 'c':
-					cflags=1;
+					*cflags=1;
 					break;
 			case 'v':
 					vflags=1;
@@ -25,8 +30,8 @@ int  init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPo
 	if(hflags==1){
 		printf("h is shown display help\n");
 	}
-	if(cflags==1){
-		*cflags=1;
+	if(*cflags==1){
+		
 		printf("c is show\n");
 	}
 	if(vflags==1){

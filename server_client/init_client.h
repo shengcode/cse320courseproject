@@ -3,7 +3,7 @@
 
 
 
-int  init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPort);
+int init_client(int argc, char *argv[],char* name, char*serverIP,char* serverPort, int * cflags);
 
 
 #endif
