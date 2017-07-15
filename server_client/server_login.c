@@ -10,6 +10,7 @@
 
 void * thread_login(void* vargp){
 	int communicateSocket=*((int*) vargp);
+	int continueValue=1;
 	while(1){
 		Arraylist readSentence;
 		init_arraylist(&readSentence, sizeof(char));

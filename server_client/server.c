@@ -10,19 +10,25 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include "server.h"
+#include "init_server.h"
 #include "server_login.h"
 #include "array_list.h"
 
 int main(int argc, char**argv){
+	int v;
+	int* vflags=&v;
+	char portNumber[100];
+	char MOTD[1000];
+	char accountFile[1000];
+	if(init_server(int argc, char *argv[],int* vflags; char* portNumber, char*MOTD,char* accountFile)==0){
+		exit(EXIT_FAILURE);
+	}	
 	int welcomeSocket;	
 	struct sockaddr_in SA;
 	pthread_t tid;
 	fd_set readfds;
 	int number_of_success_login=0;
-	
-	
-	
-	
+
 	welcomeSocket=socket(AF_INET,SOCK_STREAM,0);
 		if(welcomeSocket==-1) {perror("failed to create a good socket\n"); return 1;}	
 	memset((void*)&SA,0,sizeof(SA));
