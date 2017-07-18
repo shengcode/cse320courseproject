@@ -8,7 +8,7 @@
 #include "init_server.h"
 
 
-int  init_server(int argc, char *argv[],int* vflags; char* portNumber, char*MOTD,char* accountFile){
+int  init_server(int argc, char *argv[],int* vflags, char* portNumber, char*MOTD,char* accountFile){
 	int hflags=0,opt;
 	while ((opt = getopt(argc, argv, "hv")) != -1) {
 		switch (opt) {

@@ -1,4 +1,5 @@
-#define _GNU_SOURCE   
+#define _GNU_SOURCE
+#include <pthread.h>
 #include<stdio.h>
 #include<string.h>
 #include<sys/socket.h>
@@ -7,7 +8,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include<errno.h>          
-#include <pthread.h>
 #include <stdlib.h>
 #include "server.h"
 #include "init_server.h"
@@ -15,12 +15,12 @@
 #include "array_list.h"
 
 int main(int argc, char**argv){
-	int v;
-	int* vflags=&v;
+	
+	int vflags;
 	char portNumber[100];
 	char MOTD[1000];
 	char accountFile[1000];
-	if(init_server(int argc, char *argv[],int* vflags; char* portNumber, char*MOTD,char* accountFile)==0){
+	if(init_server( argc, argv,&vflags, portNumber, MOTD,accountFile)==0){
 		exit(EXIT_FAILURE);
 	}	
 	int welcomeSocket;	

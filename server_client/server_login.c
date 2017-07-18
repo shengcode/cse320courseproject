@@ -1,3 +1,13 @@
+#define _GNU_SOURCE   
+#include<stdio.h> 
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include "server_login.h"
+#include "array_list.h"
+#include "utility.h"
+
 void * thread_login(void* vargp){
 	int communicateSocket=*((int*) vargp);
 	char messageReceive[1000]="";
@@ -12,7 +22,7 @@ void * thread_login(void* vargp){
 				continueValue=sendHinewName(communicateSocket, name);
 				continueValue=receiveNewPass(communicateSocket,messageReceive,password);
 				if(ISvalidPassword(password)){
-					continueValue=sendSSAPWENandHi(communicateSocket);
+					continueValue=sendSSAPWENandHi(communicateSocket,name);
 					// login successfully
 				}
 				if(!ISvalidPassword(password)){
@@ -21,7 +31,7 @@ void * thread_login(void* vargp){
 				}
 			}
 			if(ISnameExist(name)){
-				continueValue= sendErr00Bye(int communicateSocket);	
+				continueValue= sendErr00Bye(communicateSocket);	
 				//disconnected;
 			}
 		}
@@ -47,7 +57,7 @@ void * thread_login(void* vargp){
 			}
 		}
 		else{
-			returnValue=-10;
+			continueValue=-10;
 			perror("not New User, not Old User, not expected message\n");
 			
 		}
@@ -74,7 +84,7 @@ int sendEIFLOWandReceive(int communicateSocket,char*messageReceive){
 	char* endNode="\r\n\r\n";
 	int sendSize;
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageTosend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send EIFLOW message\n");
 		return -1;
 	}
@@ -88,7 +98,7 @@ int sendEIFLOWandReceive(int communicateSocket,char*messageReceive){
 
 int ISnewUser(char* messageReceive, char*name){
 	char* messageToCompare="IAMNEW";
-	if(strcmp(messageReceive,messageToCompare,7)==0){
+	if(strncmp(messageReceive,messageToCompare,7)==0){
 		messageReceive[strlen(messageReceive)-4]='\0';
 		strcpy(name,(messageReceive+7));
 		return 1;
@@ -98,7 +108,7 @@ int ISnewUser(char* messageReceive, char*name){
 
 int ISoldUser(char* messageReceive, char*name){
 	char* messageToCompare="IAM";
-	if(strcmp(messageReceiv,messageToCompare,3)==0){
+	if(strncmp(messageReceive,messageToCompare,3)==0){
 		messageReceive[strlen(messageReceive)-4]='\0';
 		strcpy(name, (messageReceive+3));
 		return 1;
@@ -113,15 +123,16 @@ int ISnameExist(char*name){
 int sendErr00Bye(int communicateSocket){
 	char messageToSend[1000]="ERR 00 USERNAME TAKEN";
 	char* endNode="\r\n\r\n";
+	int sendSize;
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send ERR 00 message\n");
 		return -1;
 	}
 	char* bye="BYE";
 	strcpy(messageToSend,bye);
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send BYE message\n");
 		return -1;
 	}
@@ -129,11 +140,11 @@ int sendErr00Bye(int communicateSocket){
 }
 
 int sendHinewName(int communicateSocket, char* name){
-	char messageToSend[1000]="HINEW"
+	char messageToSend[1000]="HINEW";
 	int sendSize;
 	strcat(messageToSend, name);
 	strcat(messageToSend,"\r\n\r\n");
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send HINEW message\n");
 		return -1;
 	}
@@ -146,7 +157,7 @@ int receiveNewPass(int communicateSocket, char* messageReceive,char*password){
 			perror("failed to receive message\n");
 			return -1;
 	}
-	if (strcmp(messageToCompare,messageReceive,7)==0){
+	if (strncmp(messageToCompare,messageReceive,7)==0){
 		messageReceive[strlen(messageReceive)-4]='\0';
 		strcpy(password,messageReceive);
 		return 1;
@@ -164,7 +175,7 @@ int sendSSAPWENandHi(int communicateSocket,char* name){
 	char messageToSend[1000]="SSAPWEN";
 	strcat(messageToSend,"\r\n\r\n");
 	int sendSize;
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send SSAPWEN message\n");
 		return -1;
 	}
@@ -172,7 +183,7 @@ int sendSSAPWENandHi(int communicateSocket,char* name){
 	strcpy(messageToSend,hi);
 	strcat(messageToSend,name);
 	strcat(messageToSend,"\r\n\r\n");
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send hi name message\n");
 		return -1;
 	}
@@ -182,15 +193,16 @@ int sendSSAPWENandHi(int communicateSocket,char* name){
 int sendErr02Bye(int communicateSocket){
 	char messageToSend[1000]="ERR 02 BAD PASSWORD";
 	char* endNode="\r\n\r\n";
+	int sendSize;
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send ERR 02 message\n");
 		return -1;
 	}
 	char* bye="BYE";
 	strcpy(messageToSend,bye);
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send BYE message\n");
 		return -1;
 	}
@@ -201,7 +213,7 @@ int sendAuth(int communicateSocket, char*name){
 	strcat(messageToSend,name);
 	strcat(messageToSend,"\r\n\r\n");
 	int sendSize;
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send AUTH message\n");
 		return -1;
 	}
@@ -214,7 +226,7 @@ int receivePASS(int communicateSocket,char* messageReceive,char*password){
 			perror("failed to receive PASS message\n");
 			return -1;
 	}
-	if(strcmp(messageToCompare,messageReceive,4)==0){
+	if(strncmp(messageToCompare,messageReceive,4)==0){
 		messageReceive[strlen(messageReceive)-4]=='\0';
 		strcpy(password,messageReceive);
 		return 1;
@@ -232,7 +244,7 @@ int sendSSAPandHi(int communicateSocket,char* name){
 	char messageToSend[1000]="SSAP";
 	strcat(messageToSend,"\r\n\r\n");
 	int sendSize;
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send SSAP message\n");
 		return -1;
 	}
@@ -240,7 +252,7 @@ int sendSSAPandHi(int communicateSocket,char* name){
 	strcpy(messageToSend,hi);
 	strcat(messageToSend,name);
 	strcat(messageToSend,"\r\n\r\n");
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send hi name message\n");
 		return -1;
 	}
@@ -250,15 +262,16 @@ int sendSSAPandHi(int communicateSocket,char* name){
 int sendErr01Bye(int communicateSocket){
 	char messageToSend[1000]="ERR 01 USER NOT AVAILABLE";
 	char* endNode="\r\n\r\n";
+	int sendSize;
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send ERR 01 message\n");
 		return -1;
 	}
 	char* bye="BYE";
 	strcpy(messageToSend,bye);
 	strcat(messageToSend, endNode);
-	if((sendSize=send(communicateSocket,messageToSend,strlen(messageTosend),0))==-1){
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
 		perror("failed to send BYE message\n");
 		return -1;
 	}
