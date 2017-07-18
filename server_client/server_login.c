@@ -98,9 +98,9 @@ int sendEIFLOWandReceive(int communicateSocket,char*messageReceive){
 
 int ISnewUser(char* messageReceive, char*name){
 	char* messageToCompare="IAMNEW";
-	if(strncmp(messageReceive,messageToCompare,7)==0){
+	if(strncmp(messageReceive,messageToCompare,6)==0){
 		messageReceive[strlen(messageReceive)-4]='\0';
-		strcpy(name,(messageReceive+7));
+		strcpy(name,(messageReceive+6));
 		return 1;
 	}	
 	return 0;	
@@ -117,7 +117,7 @@ int ISoldUser(char* messageReceive, char*name){
 }
 
 int ISnameExist(char*name){
-	return 1; //todo 
+	return 0; //todo  name does not exists
 }
 
 int sendErr00Bye(int communicateSocket){
@@ -159,7 +159,7 @@ int receiveNewPass(int communicateSocket, char* messageReceive,char*password){
 	}
 	if (strncmp(messageToCompare,messageReceive,7)==0){
 		messageReceive[strlen(messageReceive)-4]='\0';
-		strcpy(password,messageReceive);
+		strcpy(password,messageReceive+7);
 		return 1;
 	}
 	perror("not the message I expected\n");

@@ -44,7 +44,7 @@ int main(int argc, char**argv){
 		return 1;
 	}
 	while(1){
-		char client_message[1000]="0";
+		/*char client_message[1000]="0";
 		printf("Enter the message: ");
 		fgets(client_message,1000,stdin);
 		int size_client_message=(int)strlen(client_message);
@@ -55,7 +55,7 @@ int main(int argc, char**argv){
 		if(sendSize==-1) perror("failed to send message\n");
 		int recvSize=recv(client_socket,client_message,1000,0);
 		if (recvSize==-1) perror("failed to receive message\n");
-		printf("the message I received is %s\n",client_message);
+		printf("the message I received is %s\n",client_message);*/
 		client_login(client_socket,name,cflags);
 	}
 	close(client_socket);

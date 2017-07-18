@@ -19,7 +19,7 @@ int client_login(int client_socket,char*name, int cflags){
 	int continueValue=1;
 	while(continueValue){
 		continueValue=sendWOLFIE(client_socket,messageReceive); //on success return 1 
-		continueValue=receiveELFLOW(client_socket); //on success return 1 
+		continueValue=receiveELFLOW(client_socket,messageReceive); //on success return 1 
 		
 		if(cflags==1){
 			continueValue=sendIAMnewName(client_socket,name);
@@ -67,8 +67,8 @@ int sendWOLFIE(int client_socket,char* messageReceive){
 	}
 	return readCharacter(client_socket,messageReceive);
 }
-int receiveELFLOW(int client_socket){
-	char messageReceive[1000]="",messageToCompare[1000]="";
+int receiveELFLOW(int client_socket,char* messageReceive){
+	char messageToCompare[1000]="";
 	char* elflow="ELFLOW";
 	prepare_message(messageToCompare,elflow);
 	if(strcmp(messageReceive,messageToCompare)!=0){

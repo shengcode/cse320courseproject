@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include<errno.h>          
 #include <stdlib.h>
+#include <limits.h>
 #include "server.h"
 #include "init_server.h"
 #include "server_login.h"
@@ -23,6 +24,9 @@ int main(int argc, char**argv){
 	if(init_server( argc, argv,&vflags, portNumber, MOTD,accountFile)==0){
 		exit(EXIT_FAILURE);
 	}	
+	long int converted_portNumber;
+	if ( (converted_portNumber=convert_portNumber(portNumber))==-1){exit(EXIT_FAILURE);}
+	printf("the port number is %ld\n",converted_portNumber);
 	int welcomeSocket;	
 	struct sockaddr_in SA;
 	pthread_t tid;
@@ -35,7 +39,8 @@ int main(int argc, char**argv){
 	const char src[20]="127.0.0.1";	
 	
 	SA.sin_family=AF_INET;	//initialize structure
-	SA.sin_port=htons(12000);	
+	//SA.sin_port=htons(12000);	
+	SA.sin_port=htons((uint16_t) converted_portNumber);
 	inet_pton(AF_INET,src,&(SA.sin_addr.s_addr));	
 	if(bind(welcomeSocket,(struct sockaddr*)&SA,sizeof(struct sockaddr_in))==-1){
 		perror("failed to bind the server\n");
@@ -83,5 +88,24 @@ void * thread_accept(void* vargp){
 }
 
 
-
+long int convert_portNumber(char* serverPort){
+	char mid;
+	char* endptr=&mid;
+	errno =0;
+	long int returnValue=strtol(serverPort, &endptr, 10);
+	//underflow and overflow or no digits 
+	if( (errno==ERANGE && (returnValue==LLONG_MAX || returnValue==LLONG_MIN)) || (errno==EINVAL && returnValue==0) ){
+		printf("overflow/underflow happened or No digits was seen, no conversion is performed\n");
+		return -1;
+	}
+	if(endptr==serverPort){
+		printf("no digits was seen in the port number\n");
+		return -1;
+	}
+	if (*endptr != '\0'){        /* Not necessarily an error... */
+       printf("Further characters after number: %s\n", endptr);
+		return -1;
+	}
+	return returnValue;
+}
 

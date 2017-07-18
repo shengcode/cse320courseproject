@@ -3,7 +3,7 @@
 
 int client_login(int client_socket,char*name, int cflags);
 int sendWOLFIE(int client_socket,char* messageReceive);
-int receiveELFLOW(int client_socket);
+int receiveELFLOW(int client_socket,char*messageReceive);
 int sendIAMnewName(int client_socket, char* name);
 int receiveAfterIAMnewName(int client_socket,char* messageReceive);
 int ISNewUserNameNotTaken(char* messageReceive,char* name);

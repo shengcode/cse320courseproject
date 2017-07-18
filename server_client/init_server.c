@@ -27,7 +27,7 @@ int  init_server(int argc, char *argv[],int* vflags, char* portNumber, char*MOTD
 	if(hflags==1){
 		printf("h is shown display help\n");
 	}
-	if(vflags==1){
+	if(*vflags==1){
 		printf("v is show\n");
 	}
 	if(optind<argc && (argc-optind)>=3){

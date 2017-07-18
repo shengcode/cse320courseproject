@@ -8,4 +8,6 @@ struct acceptThreadArgs{
 	
 };
 void * thread_login(void* vargp);
+
+long int convert_portNumber(char* serverPort);
 #endif 
