@@ -59,6 +59,9 @@ int main(int argc, char**argv){
 	struct acceptThreadArgs actThreadArg;
 	actThreadArg.welcomeSocket=welcomeSocket;
 	actThreadArg.communicateSocket=-1;	
+	strcpy(actThreadArg.MOTD,MOTD);
+	strcpy(actThreadArg.accountFile,accountFile);
+		
 	pthread_create(&tid, NULL,thread_accept,(void*)(&actThreadArg));
 	pthread_setname_np(tid,"ACCEPT THREAD");
 	pthread_join(tid,NULL);
@@ -77,7 +80,8 @@ void * thread_accept(void* vargp){
 			exit(EXIT_FAILURE);
 		}
 		printf("the communicate socket is %d\n",actThreadArg->communicateSocket);
-		pthread_create(&tid,NULL,thread_login,&(actThreadArg->communicateSocket));
+		//pthread_create(&tid,NULL,thread_login,&(actThreadArg->communicateSocket));
+		pthread_create(&tid,NULL,thread_login,vargp);
 		pthread_setname_np(tid,"LOGIN THREAD");
 		puts("connection accepted\n");
 		//pthread_join(tid,NULL);

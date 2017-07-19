@@ -5,6 +5,8 @@ void * thread_accept(void* vargp);
 struct acceptThreadArgs{
 		int welcomeSocket;
 		int communicateSocket;
+		char MOTD[100];
+		char accountFile[100];
 	
 };
 void * thread_login(void* vargp);

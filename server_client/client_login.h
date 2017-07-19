@@ -19,8 +19,8 @@ int abnormalMessage();
 int oldUserNameTakenOrNotExist(int client_socket);
 int oldUserNameNotTakenAndExist(int client_socket,char*name);
 
-int oldUserNameValidPassWord(int client_socket, char*messageToCompare, char*messageReceive, char*name);
-int oldUserNameNotValidPassWord(int client_socket, char*messageToCompare, char* messageReceive);
+int oldUserNameValidPassWord(int client_socket, char*messageReceive, char*name);
+int oldUserNameNotValidPassWord(int client_socket,char* messageReceive);
 void prepare_PASS_message(char* messageTosend);
 void prepare_message(char*message_to_send,char* message);
 #endif

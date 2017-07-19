@@ -23,12 +23,16 @@ int client_login(int client_socket,char*name, int cflags){
 		
 		if(cflags==1){
 			continueValue=sendIAMnewName(client_socket,name);
-			continueValue=receiveAfterIAMnewName(client_socket,messageReceive);
+			continueValue=receiveAfterIAMnewName(client_socket,messageReceive); // hi new 
 			if(ISuserNameTaken(messageReceive)){
 				continueValue=oldUserNameTakenOrNotExist(client_socket); //can be used in new user case
 			}
 			else if(ISNewUserNameNotTaken(messageReceive,name)){
 				continueValue=NewUserNameNotTakenAndExist(client_socket,name);
+				if(continueValue==1){
+					printf("client successfully logined in !!!\n");
+					break;
+				}
 			}			
 		}
 		else if(cflags==0){
@@ -72,7 +76,7 @@ int receiveELFLOW(int client_socket,char* messageReceive){
 	char* elflow="ELFLOW";
 	prepare_message(messageToCompare,elflow);
 	if(strcmp(messageReceive,messageToCompare)!=0){
-		perror("not the message I expected\n");
+		perror("not the ELFLOW message I expected\n");
 		return -10;
 	}
 	return 1;
@@ -111,26 +115,24 @@ int ISNewUserNameNotTaken(char* messageReceive,char* name){
 
 
 int NewUserNameNotTakenAndExist(int client_socket,char* name){
-	int sendSize;
-	char messageTosend[100]="",messageReceive[1000]="",messageToCompare[1000]="";
-	prepare_NEWPASS_message(messageTosend);
+	int sendSize=-1;
+	char messageTosend[100]="",messageReceive[1000]="";
+	prepare_NEWPASS_message(messageTosend); // new pass 
 	if((sendSize=send(client_socket,messageTosend,strlen(messageTosend),0))==-1  )
 		{perror("failed to send message\n");return -1;}
-	/*if((recvSize=recv(client_socket,messageReceive,1000,0)) ==-1)
-		{perror("failed to receive message");return -1;}*/
 	if (readCharacter(client_socket, messageReceive)==-1) return -1;
-	char* badPass="ERR 02 BAD PASSWORD";
-	prepare_message(messageToCompare,badPass);
-	if (strcmp(messageToCompare,messageReceive)==0){
-			return oldUserNameNotValidPassWord(client_socket, messageToCompare, messageReceive);
+	char badPass[100]="ERR 02 BAD PASSWORD";
+	strcat(badPass,"\r\n\r\n");
+	char goodPass[100]="SSAPWEN";
+	strcat(goodPass,"\r\n\r\n");
+	if (strcmp(badPass,messageReceive)==0){
+			return oldUserNameNotValidPassWord(client_socket,messageReceive);
 	}
-	char* goodPass="SSAPWEN";
-	prepare_message(messageToCompare,goodPass);
-	if (strcmp(messageToCompare,messageReceive)==0){
-		return oldUserNameValidPassWord(client_socket,messageToCompare,messageReceive,name);
+	else if (strcmp(goodPass,messageReceive)==0){
+		return oldUserNameValidPassWord(client_socket,messageReceive,name);
 	}
 	else{
-		printf("not the message I expected\n");
+		printf("not the SSAPWEN message I expected\n");
 		return -10;
 	}
 	return 1;
@@ -199,7 +201,7 @@ int ISuserNameAuth(char* messageReceive,char* name){
 }
 
 int abnormalMessage(){
-	printf("not the message I expected\n");
+	printf("not the message IN  the abnormalMessage function I expected\n");
 	return -10;
 }
 
@@ -213,7 +215,7 @@ int oldUserNameTakenOrNotExist(int client_socket){
 	char* bye="BYE";
 	prepare_message(messageToCompare,bye);
 	if(strcmp(messageToCompare,messageReceive)!=0){
-		perror("not the message I expected\n");
+		perror("not the BYE message I expected\n");
 		return -10;
 	}
 	else if(strcmp(messageToCompare,messageReceive)==0){
@@ -225,61 +227,63 @@ int oldUserNameTakenOrNotExist(int client_socket){
 }
 int oldUserNameNotTakenAndExist(int client_socket,char*name){
 	int sendSize;
-	char messageTosend[100]="",messageReceive[1000]="",messageToCompare[1000]="";
+	char messageTosend[100]="",messageReceive[1000]="";
 	prepare_PASS_message(messageTosend);
 	if((sendSize=send(client_socket,messageTosend,strlen(messageTosend),0))==-1  )
 		{perror("failed to send message\n");return -1;}
-	/*if((recvSize=recv(client_socket,messageReceive,1000,0)) ==-1)
-		{perror("failed to receive message");return -1;}*/
 	if (readCharacter(client_socket, messageReceive)==-1) return -1;
-	char* badPass="ERR 02 BAD PASSWORD";
-	prepare_message(messageToCompare,badPass);
-	if (strcmp(messageToCompare,messageReceive)==0){
-			return oldUserNameNotValidPassWord(client_socket, messageToCompare, messageReceive);
+	char badPass[100]="ERR 02 BAD PASSWORD";
+	strcat(badPass,"\r\n\r\n");
+	char goodPass[100]="PASS";
+	strcat(goodPass,"\r\n\r\n");
+	if (strcmp(badPass,messageReceive)==0){
+			return oldUserNameNotValidPassWord(client_socket,messageReceive);
 	}
-	char* goodPass="PASS";
-	prepare_message(messageToCompare,goodPass);
-	if (strcmp(messageToCompare,messageReceive)==0){
-		return oldUserNameValidPassWord(client_socket,messageToCompare,messageReceive,name);
+	else if (strcmp(goodPass,messageReceive)==0){
+		return oldUserNameValidPassWord(client_socket,messageReceive,name);
 	}
 	else{
-		printf("not the message I expected\n");
+		printf("not the good pass or badpass message I expected\n");
 		return -10;
 	}
 	return 1;
 }
-int oldUserNameValidPassWord(int client_socket, char*messageToCompare, char*messageReceive, char*name){
+int oldUserNameValidPassWord(int client_socket, char*messageReceive, char*name){
 	if (readCharacter(client_socket, messageReceive)==-1) return -1;
 	char* hi="HI";
 	char * endNode="\r\n\r\n";	
+	char messageToCompare[1000];
 	strcpy(messageToCompare, hi);
 	strcat(messageToCompare,name);
 	strcat(messageToCompare,endNode);
 	if(strcmp(messageToCompare,messageReceive)!=0){
-		perror("not the message I expected\n");
+		perror("not the HIname message I expected\n");
 		return -10;
 	}
 	char* motd="MOTD";
 	strcpy(messageToCompare,motd);
+	if (readCharacter(client_socket, messageReceive)==-1) return -1;
 	if (strncmp(messageToCompare, messageReceive, 4)!=0){
-		perror("not the message I expected\n");
+		perror("not the MOTD message I expected\n");
 		return -10;
 	}
 	else if (strncmp(messageToCompare, messageReceive,4)==0){
-		printf("successfully login in now !!!!\n");
+		printf("successfully login in now inside the small function !!!!\n");
 		return 1;  
 	}
 	
 }
-int oldUserNameNotValidPassWord(int client_socket, char*messageToCompare, char* messageReceive){
+int oldUserNameNotValidPassWord(int client_socket, char* messageReceive){
+	char messageToCompare[1000]="";
 	if(readCharacter(client_socket, messageReceive)==-1) return -1;
 	char* bye="BYE";
 	prepare_message(messageToCompare,bye);
 	if(strcmp(messageToCompare,messageReceive)!=0){
-		perror("not the message I expected\n");
+		perror("not the message BYE I expected\n");
 		return -10;
 	}
 	else if(strcmp(messageToCompare,messageReceive)==0){
+		printf("it it the BYE message I expected\n");
 		printf("failed login, password not valid \n");
 		//disconnect the communication here
 		return 0; 

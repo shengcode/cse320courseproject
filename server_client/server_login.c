@@ -4,19 +4,31 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "server.h"
 #include "server_login.h"
 #include "array_list.h"
 #include "utility.h"
 
 void * thread_login(void* vargp){
-	int communicateSocket=*((int*) vargp);
+	//int communicateSocket=*((int*) vargp);
+	char MOTD[100];
+	char accountFile[100];
+	struct acceptThreadArgs* loginThreadArg = (struct acceptThreadArgs*) vargp;
+	int communicateSocket= loginThreadArg->communicateSocket;
+	strcpy(MOTD,loginThreadArg->MOTD);
+	strcpy(accountFile, loginThreadArg->accountFile);
+	
+	printf("the motd is %s\n",MOTD);
+	printf("the account file is %s\n",accountFile);
+	
 	char messageReceive[1000]="";
 	char name[100];
 	char password[100];
 	int continueValue=1;
 	while(1){
 		continueValue=receiveWOLFIE(communicateSocket, messageReceive);
-		continueValue=sendEIFLOWandReceive(communicateSocket,messageReceive);
+		continueValue=sendEIFLOW(communicateSocket);
+		continueValue=receiveIAMNEWorIAM(communicateSocket,messageReceive);
 		if (ISnewUser(messageReceive, name)){
 			if(!ISnameExist(name)){
 				continueValue=sendHinewName(communicateSocket, name);
@@ -24,6 +36,11 @@ void * thread_login(void* vargp){
 				if(ISvalidPassword(password)){
 					continueValue=sendSSAPWENandHi(communicateSocket,name);
 					// login successfully
+					continueValue=sendMotd(communicateSocket,MOTD);
+					if (continueValue==1){
+						printf("new user login successfully\n");
+						continue;
+					}
 				}
 				if(!ISvalidPassword(password)){
 					continueValue=sendErr02Bye(communicateSocket);
@@ -49,6 +66,8 @@ void * thread_login(void* vargp){
 				if(IScorrectPassword(name,password)){
 					continueValue=sendSSAPandHi(communicateSocket,name);
 					//login successfully
+					sendMotd(communicateSocket,MOTD);
+					printf("login successfully\n");
 				}
 				if(!IScorrectPassword(name, password)){
 					continueValue=sendErr02Bye(communicateSocket);
@@ -79,7 +98,7 @@ int receiveWOLFIE(int communicateSocket,char* messageReceive){
 	return 1;	
 }
 
-int sendEIFLOWandReceive(int communicateSocket,char*messageReceive){
+int sendEIFLOW(int communicateSocket){
 	char messageToSend[1000]="ELFLOW";
 	char* endNode="\r\n\r\n";
 	int sendSize;
@@ -88,13 +107,18 @@ int sendEIFLOWandReceive(int communicateSocket,char*messageReceive){
 		perror("failed to send EIFLOW message\n");
 		return -1;
 	}
+	return 1;
+}
+
+int receiveIAMNEWorIAM(int communicateSocket,char*messageReceive){
 	if (readCharacter(communicateSocket,messageReceive)==0){
 			perror("failed to receive IAM or IAMNEW message\n");
 			return -1;
 	}
-	
 	return 1;
 }
+
+
 
 int ISnewUser(char* messageReceive, char*name){
 	char* messageToCompare="IAMNEW";
@@ -189,6 +213,17 @@ int sendSSAPWENandHi(int communicateSocket,char* name){
 	}
 	return 1;
 }
+int sendMotd(int communicateSocket,char*MOTD){
+	char messageToSend[1000]="MOTD";
+	strcat(messageToSend,MOTD);
+	strcat(messageToSend,"\r\n\r\n");
+	int sendSize;
+	if((sendSize=send(communicateSocket,messageToSend,strlen(messageToSend),0))==-1){
+		perror("failed to send MOTD message\n");
+		return -1;
+	}
+}
+
 
 int sendErr02Bye(int communicateSocket){
 	char messageToSend[1000]="ERR 02 BAD PASSWORD";
