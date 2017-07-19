@@ -10,7 +10,6 @@
 #include "utility.h"
 
 void * thread_login(void* vargp){
-	//int communicateSocket=*((int*) vargp);
 	char MOTD[100];
 	char accountFile[100];
 	struct acceptThreadArgs* loginThreadArg = (struct acceptThreadArgs*) vargp;
@@ -222,6 +221,7 @@ int sendMotd(int communicateSocket,char*MOTD){
 		perror("failed to send MOTD message\n");
 		return -1;
 	}
+	return 1;
 }
 
 
