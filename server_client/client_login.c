@@ -16,48 +16,32 @@
 int client_login(int client_socket,char*name, int cflags){
 	//-1 disconnect -10 abnormal message from server 0 failed login 1 good 
 	char messageReceive[1000];
-	int continueValue=1;
-	while(continueValue){
-		continueValue=sendWOLFIE(client_socket,messageReceive); //on success return 1 
-		continueValue=receiveELFLOW(client_socket,messageReceive); //on success return 1 
-		
-		if(cflags==1){
-			continueValue=sendIAMnewName(client_socket,name);
-			continueValue=receiveAfterIAMnewName(client_socket,messageReceive); // hi new 
-			if(ISuserNameTaken(messageReceive)){
-				continueValue=oldUserNameTakenOrNotExist(client_socket); //can be used in new user case
-			}
-			else if(ISNewUserNameNotTaken(messageReceive,name)){
-				continueValue=NewUserNameNotTakenAndExist(client_socket,name);
-				if(continueValue==1){
-					printf("client successfully logined in !!!\n");
-					break;
-				}
-			}			
+	if(sendWOLFIE(client_socket,messageReceive)!=1) return -1;
+	if(receiveELFLOW(client_socket,messageReceive)!=1) return -1;
+	if (cflags==1){
+		if(sendIAMnewName(client_socket,name)!=1) return -1;
+		if(receiveAfterIAMnewName(client_socket,messageReceive)!=1) return -1;
+		if(ISuserNameTaken(messageReceive)){
+			if(oldUserNameTakenOrNotExist(client_socket)!=1) return -1;
 		}
-		else if(cflags==0){
-			continueValue=sendIAMNAME(client_socket,name); //on success return 1 
-			continueValue=receiveAfterIAMNAME(client_socket, messageReceive);// on success return 1
-			if ( ISuserNameTaken(messageReceive)){
-				continueValue=oldUserNameTakenOrNotExist(client_socket); // -1 -10 0r 0
-			}
-			else if (ISuserNameNotExist(messageReceive)){
-				continueValue=oldUserNameTakenOrNotExist(client_socket); //-1 -10 0r 0
-			}
-			else if (ISuserNameAuth(messageReceive,name)){
-				continueValue=oldUserNameNotTakenAndExist(client_socket,name);
-				if(continueValue==1){ //break out from the login in while loop
-					break;
-				}
-			}
-			else{
-				continueValue=abnormalMessage();
-				
-			}
-		}//cflags==0
-	}//while loop
-	return continueValue;
+		else if(ISNewUserNameNotTaken(messageReceive,name)){
+			return NewUserNameNotTakenAndExist(client_socket,name);
+		
+		}
+	}
+	else if(cflags==0){
+		if (sendIAMNAME(client_socket,name)!=1) return -1;
+		if (receiveAfterIAMNAME(client_socket, messageReceive)!=1) return -1;
+		if(ISuserNameTaken(messageReceive)|| ISuserNameNotExist(messageReceive)){
+			return (oldUserNameTakenOrNotExist(client_socket));
+		}
+		else if (ISuserNameAuth(messageReceive,name)){
+			return oldUserNameNotTakenAndExist(client_socket,name);
+		}
+	}
+	
 }	
+
 
 
 int sendWOLFIE(int client_socket,char* messageReceive){
