@@ -13,7 +13,7 @@ void * thread_login(void* vargp){
 	char MOTD[100];
 	char accountFile[100];
 	struct acceptThreadArgs* loginThreadArg = (struct acceptThreadArgs*) vargp;
-	int communicateSocket= loginThreadArg->communicateSocket;
+	int communicateSocket= loginThreadArg->communicateSocket; // communicateSocket is one of the argument that is passed in
 	strcpy(MOTD,loginThreadArg->MOTD);
 	strcpy(accountFile, loginThreadArg->accountFile);
 	
@@ -141,6 +141,7 @@ int ISoldUser(char* messageReceive, char*name){
 
 int ISnameExist(char*name){
 	return 0; //todo  name does not exists
+	
 }
 
 int sendErr00Bye(int communicateSocket){

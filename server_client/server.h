@@ -12,4 +12,8 @@ struct acceptThreadArgs{
 void * thread_login(void* vargp);
 
 long int convert_portNumber(char* serverPort);
+
+int setUpDatabase();
+int createTable();
+
 #endif 

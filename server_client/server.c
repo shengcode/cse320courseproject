@@ -1,15 +1,16 @@
 #define _GNU_SOURCE
 #include <pthread.h>
-#include<stdio.h>
-#include<string.h>
-#include<sys/socket.h>
-#include<sys/types.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <unistd.h>
-#include<errno.h>          
+#include <errno.h>          
 #include <stdlib.h>
 #include <limits.h>
+#include <sqlite3.h>
 #include "server.h"
 #include "init_server.h"
 #include "server_login.h"
@@ -63,6 +64,9 @@ int main(int argc, char**argv){
 	strcpy(actThreadArg.accountFile,accountFile);
 		
 	pthread_create(&tid, NULL,thread_accept,(void*)(&actThreadArg));
+	// set up datebase 
+	if(setUpDatabase()==0) 
+		return 0;
 	pthread_setname_np(tid,"ACCEPT THREAD");
 	pthread_join(tid,NULL);
 	return 1;
@@ -113,3 +117,50 @@ long int convert_portNumber(char* serverPort){
 	return returnValue;
 }
 
+int setUpDatabase(){
+	// try to connect to database 
+	sqlite3 *db;
+	char *zErrMsg=0;
+	int rc;
+	char* sql;	
+	rc=sqlite3_open_v2("userData.db",&db,SQLITE_OPEN_READWRITE,NULL);
+	if(rc){
+		fprintf(stderr,"Can't open database\n");
+		rc=sqlite3_open("userData.db",&db); // create a database 
+		if(rc){
+			fprintf(stderr,"can't open/Create database: %s\n",sqlite3_errmsg(db));
+			return 0;
+	     } 
+		else {
+      		fprintf(stdout, "create database successfully\n");
+			// create table 
+			if(createTable()==1){
+				return 1;
+			}
+			else if(createTable()==0){
+				return 0;
+			}
+   		}
+	}
+	fprintf(stderr,"Opened existent database successfully\n");
+		return 1;
+}
+
+int createTable(){
+	sqlite3 *db;
+	char *zErrMsg=0;
+	int rc;
+	char* sql;
+	//SQL statement
+	sql = "CREATE TABLE USER_INFO("  \
+          "USERNAME TEXT PRIMARY KEY NOT NULL);" ;
+   	/* Execute SQL statement */
+   	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+	if( rc != SQLITE_OK ){
+   		fprintf(stderr, "SQL error: %s\n", zErrMsg);
+      	sqlite3_free(zErrMsg);
+		return 0; //failed created table
+   	} 
+	fprintf(stdout, "Table created successfully\n");
+	return 1;
+}
