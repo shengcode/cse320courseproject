@@ -1,10 +1,10 @@
 all: client server
 
 client: client.o init_client.o client_login.o utility.o array_list.o 
-	gcc -g client.o init_client.o client_login.o utility.o array_list.o client.h client_login.h utility.h array_list.h  -o client
+	gcc -g client.o init_client.o client_login.o utility.o array_list.o client.h client_login.h utility.h array_list.h  -o client -l sqlite3
 
 server: server.o init_server.o server_login.o utility.o array_list.o
-	gcc -g -pthread server.o init_server.o server_login.o utility.o array_list.o server.h init_server.h server_login.h utility.h array_list.h  -o server
+	gcc -g -pthread server.o init_server.o server_login.o utility.o array_list.o server.h init_server.h server_login.h utility.h array_list.h  -o server -l sqlite3
 
 server.o: server.c server.h
 	gcc -g -c server.c server.h

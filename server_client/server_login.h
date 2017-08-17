@@ -8,6 +8,7 @@ int receiveIAMNEWorIAM(int communicateSocket,char*messageReceive);
 int ISnewUser(char* messageReceive, char*name);
 int ISoldUser(char* messageReceive, char*name);
 int ISnameExist(char*name);
+static int checkISnameExist_callBack(void*NotUser, int argc, char**argv,char**azColName);
 int sendErr00Bye(int communicateSocket);
 int sendHinewName(int communicateSocket, char* name);
 int receiveNewPass(int communicateSocket, char* messageReceive,char*password);

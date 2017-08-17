@@ -1,7 +1,9 @@
 #define _GNU_SOURCE   
 #include<stdio.h> 
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sqlite3.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "server.h"
@@ -16,6 +18,7 @@ void * thread_login(void* vargp){
 	int communicateSocket= loginThreadArg->communicateSocket; // communicateSocket is one of the argument that is passed in
 	strcpy(MOTD,loginThreadArg->MOTD);
 	strcpy(accountFile, loginThreadArg->accountFile);
+	
 	
 	printf("the motd is %s\n",MOTD);
 	printf("the account file is %s\n",accountFile);
@@ -33,6 +36,7 @@ void * thread_login(void* vargp){
 				continueValue=sendHinewName(communicateSocket, name);
 				continueValue=receiveNewPass(communicateSocket,messageReceive,password);
 				if(ISvalidPassword(password)){
+					//save username and password to database 
 					continueValue=sendSSAPWENandHi(communicateSocket,name);
 					// login successfully
 					continueValue=sendMotd(communicateSocket,MOTD);
@@ -138,9 +142,33 @@ int ISoldUser(char* messageReceive, char*name){
 	}
 	return 0;
 }
+static int checkISnameExist_callBack(void*NotUser, int argc, char**argv,char**azColName){
+	if(strcmp(argv[1],(char*)((int*)NotUser+1)  )==0){
+		*(int*)NotUser=1;
+	}
+	return 0;
+}
 
 int ISnameExist(char*name){
-	return 0; //todo  name does not exists
+	sqlite3* userInfoDB;
+	char *zErrMsg=0;
+	int rc;
+	char* sql;
+	//open database
+	rc=sqlite3_open("userInfoDB.db",&userInfoDB);
+	//sql statement
+	sql="SELECT * FROM USER_INFO;";
+	//prepare args
+	void* my_args=malloc(100);
+	*(int*)my_args=-1;
+	strcpy( (char*)((int*)my_args+1),name);	
+   	rc = sqlite3_exec(userInfoDB, sql, checkISnameExist_callBack, my_args, &zErrMsg);
+	sqlite3_close(userInfoDB);
+	
+	if(*(int*)my_args==1) 
+		return 1; // name dose exists
+	else if (*(int*)my_args==-1) 
+		return 0; //  name does not exists
 	
 }
 
@@ -190,9 +218,9 @@ int receiveNewPass(int communicateSocket, char* messageReceive,char*password){
 	return -10;
 }
 int ISvalidPassword(char* password){
-
+	
 	//return 0;
-	return 1;
+	return 1;  //now always valid password
 }
 
 int sendSSAPWENandHi(int communicateSocket,char* name){
@@ -272,6 +300,27 @@ int receivePASS(int communicateSocket,char* messageReceive,char*password){
 }
 
 int IScorrectPassword(char* name, char* password){
+	sqlite3* userInfoDB;
+	char *zErrMsg=0;
+	int rc;
+	char* sql;
+	//open database
+	rc=sqlite3_open("userInfoDB.db",&userInfoDB);
+	//sql statement
+	//sql="SELECT * FROM USER_INFO WHERE USER_NAME =";
+	char* string1=
+	//prepare args
+	void* my_args=malloc(100);
+	*(int*)my_args=-1;
+	strcpy( (char*)((int*)my_args+1),name);	
+   	rc = sqlite3_exec(userInfoDB, sql, checkISnameExist_callBack, my_args, &zErrMsg);
+	sqlite3_close(userInfoDB);
+	
+	if(*(int*)my_args==1) 
+		return 1; // name dose exists
+	else if (*(int*)my_args==-1) 
+		return 0; //  name does not exists
+	
 	// open the file and check if the file match the password
 
 }
