@@ -39,15 +39,17 @@ void * thread_login(void* vargp){
 					//save username and password to database 
 					saveNewUsernameAndPassword(name, password);
 					continueValue=sendSSAPWENandHi(communicateSocket,name);
-					// login successfully
 					continueValue=sendMotd(communicateSocket,MOTD);
 					if (continueValue==1){
+						// login successfully
 						printf("new user login successfully\n");
+						//Do whatever is needed to do 
 						continue;
 					}
 				}
 				if(!ISvalidPassword(password)){
 					continueValue=sendErr02Bye(communicateSocket);
+					// update database islogin information to be 0
 					//disconnected
 				}
 			}
@@ -70,11 +72,13 @@ void * thread_login(void* vargp){
 				if(IScorrectPassword(name,password)){
 					continueValue=sendSSAPandHi(communicateSocket,name);
 					//login successfully
+					// here need to update database so that  is_login is 1 
 					sendMotd(communicateSocket,MOTD);
 					printf("login successfully\n");
 				}
 				if(!IScorrectPassword(name, password)){
 					continueValue=sendErr02Bye(communicateSocket);
+					// no need to do the database, everything stays unchanged 
 					//disconnected
 				}
 			}
@@ -143,8 +147,10 @@ int ISoldUser(char* messageReceive, char*name){
 	}
 	return 0;
 }
+//also need to check if a username is already loged_in 
 static int checkISnameExist_callBack(void*NotUser, int argc, char**argv,char**azColName){
-	if(strcmp(argv[0],(char*)((int*)NotUser+1)  )==0){
+	//print("");
+	if( strcmp(argv[0],(char*)((int*)NotUser+1))==0 || argv[2]==1 ){
 		*(int*)NotUser=1;
 	}
 	return 0;
@@ -177,7 +183,7 @@ int ISnameExist(char*name){
 }
 
 int sendErr00Bye(int communicateSocket){
-	char messageToSend[1000]="ERR 00 USERNAME TAKEN";
+	char messageToSend[1000]="ERR 00 USER NAME TAKEN";
 	char* endNode="\r\n\r\n";
 	int sendSize;
 	strcat(messageToSend, endNode);
@@ -234,11 +240,17 @@ void saveNewUsernameAndPassword(char*name, char*password){
 	rc=sqlite3_open("userInfoDB.db",&db); 
    /* Create SQL statement */
 	//sql="INSERT INTO USER_INFO (USER_NAME,NAME,PASSWORD) VALUES (name,password);";	
-	char sql[100]="INSERT INTO USER_INFO (USER_NAME,PASSWORD) VALUES(";
+	char sql[100]="INSERT INTO USER_INFO (USER_NAME,PASSWORD,IS_LOGIN) VALUES(";
+	char singleQuote[10]="\'";
+	strcat(sql,singleQuote);
 	strcat(sql,name);
+	strcat(sql,singleQuote);
 	char comma[10]=",";
 	strcat(sql,comma);
+	strcat(sql,singleQuote);
 	strcat(sql,password);
+	strcat(sql,singleQuote);
+	char isLogin[10]=",1"
 	char endBracket[10]=");";
 	strcat(sql,endBracket);
 /* Execute SQL statement */

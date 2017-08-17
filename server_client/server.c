@@ -169,9 +169,9 @@ int createTable(sqlite3 *db){
 	//SQL statement
 	sql = "CREATE TABLE USER_INFO("  \
          "USER_NAME TEXT PRIMARY KEY     NOT NULL," \
+		 "IS_LOGIN INT,"\
          "PASSWORD  TEXT );";
-
-
+	//IS_LOGIN 1 islogin, 0 is not login
    	/* Execute SQL statement */
    	rc = sqlite3_exec(db, sql, createTable_callback, 0, &zErrMsg);
 	if( rc != SQLITE_OK ){
