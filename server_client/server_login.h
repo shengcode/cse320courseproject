@@ -13,6 +13,7 @@ int sendErr00Bye(int communicateSocket);
 int sendHinewName(int communicateSocket, char* name);
 int receiveNewPass(int communicateSocket, char* messageReceive,char*password);
 int ISvalidPassword(char* password);
+void saveNewUsernameAndPassword(char*name, char*password);
 int sendSSAPWENandHi(int communicateSocket,char* name);
 int sendMotd(int communicateSocket,char*MOTD);
 int sendErr02Bye(int communicateSocket);
