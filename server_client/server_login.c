@@ -150,7 +150,7 @@ int ISoldUser(char* messageReceive, char*name){
 //also need to check if a username is already loged_in 
 static int checkISnameExist_callBack(void*NotUser, int argc, char**argv,char**azColName){
 	//print("");
-	if( strcmp(argv[0],(char*)((int*)NotUser+1))==0 || argv[2]==1 ){
+	if( strcmp(argv[0],(char*)((int*)NotUser+1))==0 || *argv[2]==1 ){
 		*(int*)NotUser=1;
 	}
 	return 0;
@@ -250,7 +250,7 @@ void saveNewUsernameAndPassword(char*name, char*password){
 	strcat(sql,singleQuote);
 	strcat(sql,password);
 	strcat(sql,singleQuote);
-	char isLogin[10]=",1"
+	char isLogin[10]=",1";
 	char endBracket[10]=");";
 	strcat(sql,endBracket);
 /* Execute SQL statement */

@@ -11,6 +11,12 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <sqlite3.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
+
 #include "server.h"
 #include "init_server.h"
 #include "server_login.h"
@@ -22,6 +28,10 @@ int main(int argc, char**argv){
 	char portNumber[100];
 	char MOTD[1000];
 	char accountFile[1000];
+	fd_set readfds;
+	FD_ZERO(&readfds);
+	FD_SET(0,&readfds);
+	
 	if(init_server( argc, argv,&vflags, portNumber, MOTD,accountFile)==0){
 		exit(EXIT_FAILURE);
 	}	
@@ -31,11 +41,11 @@ int main(int argc, char**argv){
 	int welcomeSocket;	
 	struct sockaddr_in SA;
 	pthread_t tid;
-	fd_set readfds;
+	
 	int number_of_success_login=0;
 
 	welcomeSocket=socket(AF_INET,SOCK_STREAM,0);
-		if(welcomeSocket==-1) {perror("failed to create a good socket\n"); return 1;}	
+	if(welcomeSocket==-1) {perror("failed to create a good socket\n"); return 1;}	
 	memset((void*)&SA,0,sizeof(SA));
 	const char src[20]="127.0.0.1";	
 	
@@ -55,7 +65,7 @@ int main(int argc, char**argv){
 	}
 	else
 		printf("now listening\n");
-	
+		
 	//create accept thread
 	struct acceptThreadArgs actThreadArg;
 	actThreadArg.welcomeSocket=welcomeSocket;
@@ -69,14 +79,30 @@ int main(int argc, char**argv){
 		return 0;
 	
 	pthread_create(&tid, NULL,thread_accept,(void*)(&actThreadArg));
-	
+	//pthread_create(&tid, NULL,NULL,NULL);
 	pthread_setname_np(tid,"ACCEPT THREAD");
+	FD_SET(0,&readfds);
+	
+	// put the thread to sleep but wake up when SIGUSR1 or SIGUSR2 is send 
+	sigset_t fSigSet;
+	sigemptyset(&fSigSet);
+	sigaddset(&fSigSet,SIGUSR1);
+	sigaddset(&fSigSet,SIGUSR2);
+	int nSig;
+	sigwait(&fSigSet,&nSig);
+	
+	
+	
+	
+	
 	pthread_join(tid,NULL);
 	return 1;
 }
 
 void * thread_accept(void* vargp){
-	struct acceptThreadArgs* actThreadArg = (struct acceptThreadArgs*) vargp;
+	// do nothing method 
+	
+	/*struct acceptThreadArgs* actThreadArg = (struct acceptThreadArgs*) vargp;
 	int welcomeSocket=actThreadArg->welcomeSocket;
 	struct sockaddr_in SA;
 	pthread_t tid;
@@ -95,7 +121,7 @@ void * thread_accept(void* vargp){
 		
 	}
 	
-
+*/
 }
 
 
