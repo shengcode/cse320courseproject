@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
-
+#include <error.h>
 #include "server.h"
 #include "init_server.h"
 #include "server_login.h"
@@ -78,31 +78,56 @@ int main(int argc, char**argv){
 	if(setUpDatabase(db)==0) 
 		return 0;
 	
-	pthread_create(&tid, NULL,thread_accept,(void*)(&actThreadArg));
-	//pthread_create(&tid, NULL,NULL,NULL);
-	pthread_setname_np(tid,"ACCEPT THREAD");
-	FD_SET(0,&readfds);
-	
-	// put the thread to sleep but wake up when SIGUSR1 or SIGUSR2 is send 
 	sigset_t fSigSet;
 	sigemptyset(&fSigSet);
 	sigaddset(&fSigSet,SIGUSR1);
-	sigaddset(&fSigSet,SIGUSR2);
-	int nSig;
-	sigwait(&fSigSet,&nSig);
+
+	pthread_sigmask(SIG_BLOCK, &fSigSet, 0);
 	
-	
-	
-	
-	
+	pthread_create(&tid, NULL,thread_accept,(void*)(&actThreadArg));
+	pthread_setname_np(tid,"ACCEPT THREAD");
+	FD_SET(0,&readfds);
+	FD_SET(welcomeSocket,&readfds);
+	if(select(welcomeSocket+1,&readfds,0,0,0)<0){
+		perror("ERROR in select");
+	}
+	if(FD_ISSET(0,&readfds)){
+		// standin is ready read from standin 
+		char readStandinBuffer[100];
+		fgets(readStandinBuffer, 100, stdin);
+		char users[100]="/users";
+		char help[100]="/help";
+		char shutdownString[100]="/shutdown";
+		if(strcmp(readStandinBuffer,users)==0){
+			printf("this is the /users command from stdin\n");
+		}
+		else if(strcmp(readStandinBuffer,help)==0){
+			printf("this is the /help command from stdin\n");
+		}
+		else if(strcmp(readStandinBuffer,shutdownString)==0){
+			printf("this is the /shutdown command from stdin\n");
+		}
+		
+	}
+	if(FD_ISSET(welcomeSocket,&readfds)){
+		pthread_kill(tid, SIGUSR1);
+		sleep(10);
+	}
 	pthread_join(tid,NULL);
 	return 1;
 }
 
 void * thread_accept(void* vargp){
-	// do nothing method 
+	//put itself to sleep 
+	sigset_t fSigSet;
+	sigemptyset(&fSigSet);
+	sigaddset(&fSigSet,SIGUSR1);
+	int nSig;
+	printf("nSig is %d\n",nSig);
+	printf("%d\n", sigwait(&fSigSet,&nSig));
+	printf("nSig is %d\n",nSig);
 	
-	/*struct acceptThreadArgs* actThreadArg = (struct acceptThreadArgs*) vargp;
+	struct acceptThreadArgs* actThreadArg = (struct acceptThreadArgs*) vargp;
 	int welcomeSocket=actThreadArg->welcomeSocket;
 	struct sockaddr_in SA;
 	pthread_t tid;
@@ -121,7 +146,7 @@ void * thread_accept(void* vargp){
 		
 	}
 	
-*/
+
 }
 
 
