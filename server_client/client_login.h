@@ -13,10 +13,12 @@ void prepare_NEWPASS_message(char* messageTosend);
 int sendIAMNAME(int client_socket,char*name);
 int receiveAfterIAMNAME(int client_socket, char* messageReceive);
 int ISuserNameTaken(char* messageReceive);
+int newUserNameTaken(int client_socket);
 int ISuserNameNotExist(char*messageReceive);
 int ISuserNameAuth(char* messageReceive,char* name);
 int abnormalMessage();
-int oldUserNameTakenOrNotExist(int client_socket);
+int oldUserNameTaken(int client_socket);
+int oldUserNameNotExist(int client_socket);
 int oldUserNameNotTakenAndExist(int client_socket,char*name);
 
 int oldUserNameValidPassWord(int client_socket, char*messageReceive, char*name);

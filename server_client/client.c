@@ -18,7 +18,7 @@
 
 int main(int argc, char**argv){
 	char name[100],serverIP[100],serverPort[100];
-	int cflags;
+	int cflags=0;
 	
    if (init_client(argc,argv,name,serverIP,serverPort,&cflags)==0){
    		exit(EXIT_FAILURE);

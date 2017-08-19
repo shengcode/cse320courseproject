@@ -22,7 +22,8 @@ int client_login(int client_socket,char*name, int cflags){
 		if(sendIAMnewName(client_socket,name)!=1) return -1;
 		if(receiveAfterIAMnewName(client_socket,messageReceive)!=1) return -1;
 		if(ISuserNameTaken(messageReceive)){
-			if(oldUserNameTakenOrNotExist(client_socket)!=1) return -1;
+			//if(oldUserNameTakenOrNotExist(client_socket)!=1) return -1;
+			if (newUserNameTaken(client_socket)!=1) return -1;
 		}
 		else if(ISNewUserNameNotTaken(messageReceive,name)){
 			return NewUserNameNotTakenAndExist(client_socket,name);
@@ -30,12 +31,15 @@ int client_login(int client_socket,char*name, int cflags){
 		}
 	}
 	else if(cflags==0){
-		if (sendIAMNAME(client_socket,name)!=1) return -1;
+		if(sendIAMNAME(client_socket,name)!=1) return 1;
 		if (receiveAfterIAMNAME(client_socket, messageReceive)!=1) return -1;
-		if(ISuserNameTaken(messageReceive)|| ISuserNameNotExist(messageReceive)){
-			return (oldUserNameTakenOrNotExist(client_socket));
+		if(ISuserNameTaken(messageReceive)){// username taken means already login
+			return oldUserNameTaken(client_socket);
 		}
-		else if (ISuserNameAuth(messageReceive,name)){
+		else if(ISuserNameNotExist(messageReceive)){ // username dose not exist 
+			return oldUserNameNotExist(client_socket);
+		}
+		else if (ISuserNameAuth(messageReceive,name)){ //server send AUTHname
 			return oldUserNameNotTakenAndExist(client_socket,name);
 		}
 	}
@@ -161,6 +165,25 @@ int ISuserNameTaken(char* messageReceive){
 	}
 	return 0;
 }
+int newUserNameTaken(int client_socket){
+	char messageReceive[1000]="",messageToCompare[1000]="";
+	if(readCharacter(client_socket, messageReceive)==-1)
+		return -1;
+	char* bye="BYE";
+	prepare_message(messageToCompare,bye);
+	if(strcmp(messageToCompare,messageReceive)!=0){
+		perror("not the BYE message I expected\n");
+		return -10;
+	}
+	else if(strcmp(messageToCompare,messageReceive)==0){
+		printf("failed login, username already taken\n");
+		//disconnect the communication here
+		return 0; 
+	}
+	return 0;
+}
+
+
 
 int ISuserNameNotExist(char*messageReceive){
 	char* nameNotExist="ERR 01 USER NOT AVAILABLE";
@@ -171,6 +194,8 @@ int ISuserNameNotExist(char*messageReceive){
 	}
 	return 0;
 }
+
+
 int ISuserNameAuth(char* messageReceive,char* name){
 	char* auth="AUTH";
 	char messageToCompare[1000];
@@ -192,7 +217,7 @@ int abnormalMessage(){
 
 
 
-int oldUserNameTakenOrNotExist(int client_socket){
+int oldUserNameTaken(int client_socket){
 	char messageReceive[1000]="",messageToCompare[1000]="";
 	if(readCharacter(client_socket, messageReceive)==-1)
 		return -1;
@@ -203,11 +228,30 @@ int oldUserNameTakenOrNotExist(int client_socket){
 		return -10;
 	}
 	else if(strcmp(messageToCompare,messageReceive)==0){
-		printf("failed login, username already taken\n");
+		printf("failed login, username already logined\n");
 		//disconnect the communication here
 		return 0; 
 	}
 	return 0;
+}
+int oldUserNameNotExist(int client_socket){
+	char messageReceive[1000]="",messageToCompare[1000]="";
+	if(readCharacter(client_socket, messageReceive)==-1)
+		return -1;
+	char* bye="BYE";
+	prepare_message(messageToCompare,bye);
+	if(strcmp(messageToCompare,messageReceive)!=0){
+		perror("not the BYE message I expected\n");
+		return -10;
+	}
+	else if(strcmp(messageToCompare,messageReceive)==0){
+		printf("failed login, old username dose not exist\n");
+		//disconnect the communication here
+		return 0; 
+	}
+	return 0;
+
+
 }
 int oldUserNameNotTakenAndExist(int client_socket,char*name){
 	int sendSize;
@@ -268,7 +312,7 @@ int oldUserNameNotValidPassWord(int client_socket, char* messageReceive){
 	}
 	else if(strcmp(messageToCompare,messageReceive)==0){
 		printf("it it the BYE message I expected\n");
-		printf("failed login, password not valid \n");
+		printf("failed login,  not the correct password \n");
 		//disconnect the communication here
 		return 0; 
 	}
