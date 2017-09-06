@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include "buildProcess.h"
-#include ".h"
+
 
 #define NUMBER_OF_TOKENS_BY_PIPE 20
 #define NUMBER_OF_TOKENS_BY_SPACE 20
@@ -23,13 +23,13 @@ int ProcessCommand (char* command);
 
 
 /*int main (int argc, char**argv){
-	ProcessCommand("abc def | ghi jkl mno | qqq www&");
+	ProcessCommand("abc&");
 	return 1;
 }*/
 
 
 
-int ProcessCommand (char* command){
+int ProcessCommand (char* command,char**envp){
 	char**save_tokens= malloc(sizeof(char*)*NUMBER_OF_TOKENS_BY_PIPE); 
 	int i;
 	for(i=0;i<NUMBER_OF_TOKENS_BY_PIPE;i++){
@@ -78,8 +78,8 @@ int ProcessCommand (char* command){
 		
 		if(j!=0) iteratorProcess=process;
 	}
-	execute(job);
-	/*Process* test_iterator=job.first_process;
+	//execute(job,envp);
+	Process* test_iterator=job.first_process;
 	printf("the job is background value %d\n", job.isBackground);
 	while(test_iterator!=NULL){
 		printf("the process path is %s\n",test_iterator->path);
@@ -90,7 +90,7 @@ int ProcessCommand (char* command){
 		}
 		test_iterator=test_iterator->next;
 	
-	}*/
+	}
 	//free all the stuff	
 	int a;
 	for(a=0;a<number_of_tokens;a++){
@@ -262,7 +262,7 @@ int ParseCommand(char*command, char**save_tokens, int*index){
 	makeEveryElementNUll(save_tokenChar,NUMBER_OF_CHAR_EACH_TOKEN);
 	int save_tokenCharIndex=0;
 	int save_tokens_index=0;
-	while(*(backup+backup_stringIndex)!='\0'){
+	while(*(backup+backup_stringIndex)!='\0' && *(backup+backup_stringIndex)!='\n'){
 		if(*(backup+backup_stringIndex) !='|' ){		 
 			save_tokenChar[save_tokenCharIndex]=*(backup+backup_stringIndex);
 			backup_stringIndex++;

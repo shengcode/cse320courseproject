@@ -1,60 +1,63 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<termios.h>
+#include<unistd.h>
 #include"main.h"
-#include "array_list.h"
 #include "buildProcess.h"
 
 
-int main (int argc, char ** argv, char **envp) {       
+int main (int argc, char ** argv, char **envp) {      
+	struct termios old_term;
+	if(tcgetattr(STDIN_FILENO, &old_term)!=0)
+		perror("tcgetattr() error");
+	printf("before change the default\n");
+	print_terminal(&old_term);
+	old_term.c_lflag |=ISIG; 
+	//old_term.c_lflag &=~(ECHO|ECHOE|ECHOK|ECHONL|ICANON);
+	old_term.c_lflag=ECHO | old_term.c_lflag;
+	if(tcsetattr(STDIN_FILENO,TCSAFLUSH,&old_term)<0)
+		perror("failed to setup terminal\n");
+	printf("after change the default\n");
+	print_terminal(&old_term);
 	
-	size_t n=100;
-	char* lineptr=NULL;
-	size_t number_characters=0;
-	lineptr=(char*) malloc(n*100);	
 	
-	while(1){		
+	while(1){	
+		char* command=malloc(1094*sizeof(char));
+		size_t n_char=1094;
 		printf("320sh>");
-		number_characters=getline(&lineptr, &n, stdin);
-		Arraylist stdinInput;
-		init_arraylist(&stdinInput, sizeof(char));
-		addTheStinToArrayList(lineptr,number_characters,&stdinInput); //inludes the '\n' character;
-		printf("now the commandline reading in is null terminatored %s",(char*)(&stdinInput)->data);
-		BuildProcess((char*)((&stdinInput)->data),envp);
-		//printCharPointArraylist(&stdinInput);
-		//InQuotationReplacement(&stdinInput);
-		//printCharArraylist(&stdinInput);
-		//tokenizeProcessStr((char*)( (&stdinInput)->data));
+		getline(&command, &n_char, stdin);
+		//command[]
+		ProcessCommand(command,envp);
+		free(command);
 	}
 }
 
-void addTheStinToArrayList(char*lineptr,int number_characters,Arraylist * stdinInput){
-	for(int i=0;i<number_characters;i++){
-		append(stdinInput, lineptr+i);
+
+
+
+
+
+void print_terminal(struct termios* term){
+	if(term->c_lflag & ISIG){
+		printf("ISIG is set\n");
 	}
-	char nullTerminator='\0';
-	append(stdinInput,&nullTerminator);
+	if(term->c_lflag & ECHO){
+		printf("ECHO is set\n");
+	}
+	if(term->c_lflag & ECHOE){
+		printf("ECHOE is set\n");
+	}
+	if(term->c_iflag & ECHOK){
+		printf("ECHOK is set\n");
+	}
+	if(term->c_iflag & ECHONL){
+		printf("ECHONL is set\n");
+	}
+	  if(term->c_iflag & ICANON){
+		printf("ICANON is set\n");
+	}
 }
-
-
-void tokenizeProcessStr(char* procStr){ //based on space & ' 
-	char* strtokPtr;
-	char* token;
-	do{
-		token = strtok_r(procStr, " \"'", &strtokPtr);
-		if(token == NULL) break;
-		printf("the token I got is %s\n",token);
-		procStr = NULL;		
-		
-	}while(1);
-	
-}
-
-
-
-
-
-
 
 
 

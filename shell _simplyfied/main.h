@@ -1,7 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
+#include<termios.h>
 #include "array_list.h"
 int main (int argc, char ** argv, char ** envp);
-void addTheStinToArrayList(char*lineptr,int number_characters,Arraylist* stdinInput);
-void tokenizeProcessStr(char* procStr);
+void print_terminal(struct termios* term);
 #endif
